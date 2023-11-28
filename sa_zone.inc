@@ -1137,3 +1137,29 @@ stock GetPosStreetName(cityid, StreetId) {
     }
     return zone;
 }
+
+// player zone info
+new player_city_id[MAX_PLAYERS];
+new player_street_id[MAX_PLAYERS];
+new PlayerLastZoneName[MAX_PLAYERS][MAX_ZONE_NAME];
+forward UpdatePlayerSaZoneLocation(playerid, GETTIME);
+new last_time_player_update_loc[MAX_PLAYERS];
+#define SECS_EXPIRE_UPDATE_LOCATION 30
+public UpdatePlayerSaZoneLocation(playerid, GETTIME) {
+    new expire_exausted = GETTIME + SECS_EXPIRE_UPDATE_LOCATION;
+    last_time_player_update_loc[playerid] = expire_exausted;
+    new Float:X, Float:Y, Float:Z;
+    GetPlayerPos(playerid, X, Y, Z);
+    player_city_id[playerid] = GetPosCityId(X, Y);
+    player_street_id[playerid] = GetPosStreetId(player_city_id[playerid], X, Y);
+    PlayerLastZoneName[playerid] = GetPosStreetName(player_city_id[playerid], player_street_id[playerid]);
+}
+stock GetPlayerLocation(playerid, bool:force_update_now) {
+    new GETTIME = gettime();
+    if(force_update_now == true) UpdatePlayerSaZoneLocation(playerid, GETTIME);
+    else if(last_time_player_update_loc[playerid] < GETTIME) UpdatePlayerSaZoneLocation(playerid, GETTIME);
+    new arrLocations[2];
+    arrLocations[0] = player_city_id[playerid];
+    arrLocations[1] = player_street_id[playerid];
+    return arrLocations;
+}

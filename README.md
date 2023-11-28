@@ -17,6 +17,15 @@ its similar to a_zone with more functions and also using lighter because:
 - GetPosStreetName(stateid, cityid)
 - GetMainCityFromCityId(cityid)
 
+## player funcs and global vars
+
+- UpdatePlayerSaZoneLocation(playerid, GETTIME);
+- GetPlayerLocation(playerid, bool:force_update_now)
+
+new player_city_id[MAX_PLAYERS];
+new player_street_id[MAX_PLAYERS];
+new PlayerLastZoneName[MAX_PLAYERS][MAX_ZONE_NAME];
+
 ## limits
 `#define MAX_CITIES`
 
@@ -29,17 +38,12 @@ make your checks lighter, instead of check: range, positions (that are heavier) 
 check if player/player, player/bizz, player/house, anything/anything are at the same city and same street
 its just a int check
 ```c++
-// store
-new Float:x, Float:y, Float:z;
-GetPlayerPos(i, x, y, z);
-PlayerCityId[i] = GetPosCityId(x, y);
-PlayerStreetId[i] = GetPosStreetId(PlayerCityId[i], x, y);
-
-
+// update player location force now
+GetPlayerLocation(playerid, true);
 // check a drop pos for example
 for(new i = 0; i < sizeof(DropInfo); i++) {
-    if(DropInfo[i][dropStateId] != PlayerStateId[playerid]) continue;
-    if(DropInfo[i][dropCityId] != PlayerCityId[playerid]) continue;
+    if(DropInfo[i][dropStateId] != player_street_id[playerid]) continue;
+    if(DropInfo[i][dropCityId] != player_city_id[playerid]) continue;
     if(IsPlayerInRangeOfPoint(playerid, 1.0, DropInfo[i][dropPosX], DropInfo[i][dropPosY], DropInfo[i][dropPosZ]))
     {
 ```
@@ -48,12 +52,8 @@ for(new i = 0; i < sizeof(DropInfo); i++) {
 
 or just use to show the street name in a textdraw with a light code (instead of loop to the whole list)
 ```c++
-// update textdraw with street name example
-new Float:x, Float:y, Float:z;
-GetPlayerPos(playerid, x, y, z);
-PlayerStateId[playerid] = GetPosStateId(x, y);
-PlayerCityId[playerid] = GetPosCityId(PlayerStateId[playerid], x, y);
-PlayerLastZoneName[playerid] = GetPosStreetName(PlayerStateId[playerid], PlayerCityId[playerid]);
+// update player location with delay
+GetPlayerLocation(playerid, false);
 new str[128];
 format(str, sizeof(str), "%s", PlayerLastZoneName[playerid]);
 PlayerTextDrawSetString(playerid, streetNameTD[playerid], str);
@@ -73,7 +73,7 @@ BizzInfo[bizzid][bizzCityId] = GetPosCityId(BizzInfo[bizzid][bizzStateId], BizzI
 Iter_Add(BizzInState_List[stateid], bizzid);
 
 // so you can loop into small lists
-foreach (new bizzid : BizzInState_List[PlayerStateId[playerid]]) {}
+foreach (new bizzid : BizzInState_List[player_street_id[playerid]]) {}
 
 // instead of
 for(new bizzid = 1; bizzid < MAX_BIZZ; bizzid++) {}
